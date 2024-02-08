@@ -46,7 +46,6 @@ listen:
 	std::cout << "Accepted connection" << std::endl;
 
 	// chat to client
-	_point p;
 	POINT delta_p;
 	short l_btn = 0;
 	short r_btn = 0;
@@ -54,28 +53,29 @@ listen:
 	short r_btn_in = 0;
 
 input:
-	int byteCount = recv(acceptSocket, p.buffer, _POINT_SIZE, 0);
+	int byteCount = recv(acceptSocket, events._buffer, EVENT_BUFF_SIZE, 0);
 
 	if (byteCount <= 0) {
 		goto listen;
 	}
 
-	if (p.POINT.x || p.POINT.y) {
-		std::cout << "Mouse Pos: " << p.POINT.x << ", " << p.POINT.y << std::endl;
+	if (events.type.POINT.x || events.type.POINT.y) {
+		std::cout << "Mouse Pos: " << events.type.POINT.x << ", " << events.type.POINT.y << std::endl;
 	}
 
 	// mouse mouse
 	GetCursorPos(&delta_p);
-	delta_p.x += p.POINT.x;
-	delta_p.y += p.POINT.y;
+	delta_p.x += events.type.POINT.x;
+	delta_p.y += events.type.POINT.y;
 	SetCursorPos(delta_p.x, delta_p.y);
 	delta_p.x = 0;
 	delta_p.y = 0;
 
 	// get mouse button data
-	memcpy(&l_btn_in, &p.buffer[8], 2);
-	memcpy(&r_btn_in, &p.buffer[10], 2);
+	memcpy(&l_btn_in, &events.type.L_MOUSE_BTN, 2);
+	memcpy(&r_btn_in, &events.type.R_MOUSE_BTN, 2);
 
+	// left clicks
 	if (l_btn_in != l_btn) {
 		if (l_btn_in) {
 			mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
@@ -86,6 +86,7 @@ input:
 		l_btn = l_btn_in;
 	}
 
+	// right clicks
 	if (r_btn_in != r_btn) {
 		if (r_btn_in) {
 			mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
@@ -94,6 +95,11 @@ input:
 			mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
 		}
 		r_btn = r_btn_in;
+	}
+
+	// middle mouse btn
+	if (events.type.MOUSE_WHEEL) {
+		mouse_event(MOUSEEVENTF_WHEEL, 0, 0, events.type.MOUSE_WHEEL, 0);
 	}
 
 	goto input;

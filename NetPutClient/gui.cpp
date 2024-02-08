@@ -1,5 +1,6 @@
 
 #include <Windows.h>
+#include "../Common/common.h"
 
 #define IDM_IP_ADDR 1
 #define IDM_PORT    2
@@ -108,6 +109,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		break;
 	}
 
+	case WM_MOUSEWHEEL: {
+		events.type.MOUSE_WHEEL = GET_WHEEL_DELTA_WPARAM(wParam);
+		break;
+	}
 
 	case WM_CLOSE:
 		DestroyWindow(hwnd);

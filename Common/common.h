@@ -7,8 +7,16 @@ extern int port;
 int setup_winsock(SOCKET* sock);
 
 
-#define _POINT_SIZE 32
-union _point {
-	POINT POINT;
-	char buffer[_POINT_SIZE];
+#define EVENT_BUFF_SIZE 32
+union event_buff {
+	char _buffer[EVENT_BUFF_SIZE];
+
+	struct {
+		POINT POINT;
+		short L_MOUSE_BTN;
+		short R_MOUSE_BTN;
+		short MOUSE_WHEEL;
+	} type;
 };
+
+extern event_buff events;

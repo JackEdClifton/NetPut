@@ -59,7 +59,6 @@ void handle_input(bool* quit, HWND* hwnd, SOCKET sock) {
 	static char buffer[200];
 	memset(buffer, 0, sizeof(buffer));
 
-	static _point p;
 	static int x, y;
 	static bool run = false;
 	static int byteCount;
@@ -91,11 +90,11 @@ input:
 	if (run) {
 		// get mouse position data
 		GetWindowPos(*hwnd, &x, &y);
-		GetCursorPos(&p.POINT);
+		GetCursorPos(&events.type.POINT);
 		x += 100; y += 100;
 		SetCursorPos(x, y);
-		p.POINT.x -= x;
-		p.POINT.y -= y;
+		events.type.POINT.x -= x;
+		events.type.POINT.y -= y;
 
 		// get mouse button data
 		get_async_delay++;
@@ -104,8 +103,8 @@ input:
 		}
 		l_btn = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
 		r_btn = GetAsyncKeyState(VK_RBUTTON) & 0x8000;
-		memcpy(&p.buffer[8], &l_btn, 2);
-		memcpy(&p.buffer[10], &r_btn, 2);
+		memcpy(&events.type.L_MOUSE_BTN, &l_btn, 2);
+		memcpy(&events.type.R_MOUSE_BTN, &r_btn, 2);
 
 	}
 	else {
@@ -114,7 +113,8 @@ input:
 
 
 	// send inputs to server
-	byteCount = send(sock, p.buffer, _POINT_SIZE, 0);
+	byteCount = send(sock, events._buffer, EVENT_BUFF_SIZE, 0);
+	events.type.MOUSE_WHEEL = 0; // reset this value
 
 	if (byteCount <= 0) {
 		return; // exit program

@@ -6,6 +6,7 @@
 
 int port = 25267;
 
+event_buff events;
 
 int setup_winsock(SOCKET* sock) {
 
