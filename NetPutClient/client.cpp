@@ -4,33 +4,32 @@
 #include <WS2tcpip.h>
 #include <chrono>
 #include <thread>
+#include <fstream>
 
 #include "../Common/common.h"
 
-bool register_window(HINSTANCE, HINSTANCE, LPWSTR, int);
-void handle_input(SOCKET);
+bool register_window(HWND*, HINSTANCE, HINSTANCE, LPWSTR, int);
+void handle_input(bool*, HWND*, SOCKET);
+
+SOCKET sock;
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
 
+	// Redirect cout to a file
+	std::ofstream outFile("console_output.txt");
+	std::streambuf* coutBuf = std::cout.rdbuf();
+	std::cout.rdbuf(outFile.rdbuf());
+
+	HWND hwnd;
+	register_window(&hwnd, hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+
 	// setup winsock
-	SOCKET sock = 0;
-	if (setup_winsock(sock)) {
+	if (setup_winsock(&sock)) {
 		return 1;
 	}
-
-	// connect socket
-	sockaddr_in clientService;
-	clientService.sin_family = AF_INET;
-	InetPton(AF_INET, L"192.168.0.21", &clientService.sin_addr.s_addr);
-	clientService.sin_port = htons(port);
-	if (connect(sock, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
-		std::cout << "Client: connect() failed: " << WSAGetLastError() << std::endl;
-		closesocket(sock);
-		WSACleanup();
-		return 0;
-	}
-	
-	std::thread t1 = std::thread(handle_input, sock);
+		
+	bool stop_t1 = false;
+	std::thread t1 = std::thread(handle_input, &stop_t1, &hwnd, sock);
 
 	// Message loop
 	MSG msg = {};
@@ -39,6 +38,11 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLi
 		DispatchMessage(&msg);
 	}
 	
+	stop_t1 = true;
+	t1.join();
+
+	closesocket(sock);
+	WSACleanup();
 
 	return 0;
 }

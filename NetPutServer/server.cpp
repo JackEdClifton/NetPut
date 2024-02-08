@@ -5,16 +5,12 @@
 
 #include "../Common/common.h"
 
-union _point {
-	POINT POINT;
-	char buffer[8];
-};
 
 int main() {
 
 	// setup winsock
-	SOCKET sock = 0;
-	if (setup_winsock(sock)) {
+	SOCKET sock;
+	if (setup_winsock(&sock)) {
 		return 1;
 	}
 
@@ -30,19 +26,19 @@ int main() {
 		return 0;
 	}
 
-	else {
-		std::cout << "bind is ok" << std::endl;
-	}
-
 	// setup listen
 	if (listen(sock, 1) == SOCKET_ERROR) {
-		std::cout << "Listen(): Error listening on socket " << WSAGetLastError() << std::endl;
+		std::cout << "Error: " << WSAGetLastError() << std::endl;
+		return 1;
 	}
+
+listen:
+	std::cout << "Info: Listening for connection\n";
 
 	// accept connection
 	SOCKET acceptSocket = accept(sock, NULL, NULL);
 	if (acceptSocket == INVALID_SOCKET) {
-		std::cout << "Accept failed: " << WSAGetLastError() << std::endl;
+		std::cout << "Error: " << WSAGetLastError() << std::endl;
 		WSACleanup();
 		return -1;
 	}
@@ -52,12 +48,16 @@ int main() {
 	// chat to client
 	_point p;
 	POINT delta_p;
+	short l_btn = 0;
+	short r_btn = 0;
+	short l_btn_in = 0;
+	short r_btn_in = 0;
 
 input:
-	int byteCount = recv(acceptSocket, p.buffer, 8, 0);
+	int byteCount = recv(acceptSocket, p.buffer, _POINT_SIZE, 0);
 
 	if (byteCount <= 0) {
-		goto exit;
+		goto listen;
 	}
 
 	if (p.POINT.x || p.POINT.y) {
@@ -68,14 +68,38 @@ input:
 	GetCursorPos(&delta_p);
 	delta_p.x += p.POINT.x;
 	delta_p.y += p.POINT.y;
-	//SetCursorPos(delta_p.x, delta_p.y);
+	SetCursorPos(delta_p.x, delta_p.y);
 	delta_p.x = 0;
 	delta_p.y = 0;
 
+	// get mouse button data
+	memcpy(&l_btn_in, &p.buffer[8], 2);
+	memcpy(&r_btn_in, &p.buffer[10], 2);
+
+	if (l_btn_in != l_btn) {
+		if (l_btn_in) {
+			mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, 0);
+		}
+		else {
+			mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, 0);
+		}
+		l_btn = l_btn_in;
+	}
+
+	if (r_btn_in != r_btn) {
+		if (r_btn_in) {
+			mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, 0);
+		}
+		else {
+			mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
+		}
+		r_btn = r_btn_in;
+	}
+
 	goto input;
 
-exit:
 	WSACleanup();
+	return 0;
 }
 
 

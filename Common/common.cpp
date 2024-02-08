@@ -4,10 +4,10 @@
 
 #include "common.h"
 
-int port = 55555;
+int port = 25267;
 
 
-bool setup_winsock(SOCKET sock) {
+int setup_winsock(SOCKET* sock) {
 
 	// setup DLL
 	WSADATA wsaData;
@@ -19,9 +19,9 @@ bool setup_winsock(SOCKET sock) {
 	}
 
 	// setup socket
-	sock = INVALID_SOCKET;
-	sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-	if (sock == INVALID_SOCKET) {
+	*sock = INVALID_SOCKET;
+	*sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	if (*sock == INVALID_SOCKET) {
 		std::cout << "Error: Could not setup socket" << WSAGetLastError() << std::endl;
 		WSACleanup();
 		return SOCK_SETUP_ERROR;
