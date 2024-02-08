@@ -15,6 +15,7 @@ union event_buff {
 		POINT POINT;
 		short L_MOUSE_BTN;
 		short R_MOUSE_BTN;
+		short M_MOUSE_BTN;
 		short MOUSE_WHEEL;
 	} type;
 };

@@ -64,8 +64,6 @@ void handle_input(bool* quit, HWND* hwnd, SOCKET sock) {
 	static int byteCount;
 	static long long last_f7_press = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	static long long this_f7_press;
-	short l_btn;
-	short r_btn;
 
 	// calling GetAsyncKeyState with the
 	// mouse events causes bouncing
@@ -101,11 +99,10 @@ input:
 		if (get_async_delay == 60) {
 			get_async_delay = 0;
 		}
-		l_btn = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
-		r_btn = GetAsyncKeyState(VK_RBUTTON) & 0x8000;
-		memcpy(&events.type.L_MOUSE_BTN, &l_btn, 2);
-		memcpy(&events.type.R_MOUSE_BTN, &r_btn, 2);
-
+		
+		events.type.L_MOUSE_BTN = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
+		events.type.R_MOUSE_BTN = GetAsyncKeyState(VK_RBUTTON) & 0x8000;
+		events.type.M_MOUSE_BTN = GetAsyncKeyState(VK_MBUTTON) & 0x8000;
 	}
 	else {
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));

@@ -49,8 +49,10 @@ listen:
 	POINT delta_p;
 	short l_btn = 0;
 	short r_btn = 0;
+	short m_btn = 0;
 	short l_btn_in = 0;
 	short r_btn_in = 0;
+	short m_btn_in = 0;
 
 input:
 	int byteCount = recv(acceptSocket, events._buffer, EVENT_BUFF_SIZE, 0);
@@ -74,6 +76,7 @@ input:
 	// get mouse button data
 	memcpy(&l_btn_in, &events.type.L_MOUSE_BTN, 2);
 	memcpy(&r_btn_in, &events.type.R_MOUSE_BTN, 2);
+	memcpy(&m_btn_in, &events.type.M_MOUSE_BTN, 2);
 
 	// left clicks
 	if (l_btn_in != l_btn) {
@@ -95,6 +98,17 @@ input:
 			mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, 0);
 		}
 		r_btn = r_btn_in;
+	}
+
+	// middle clicks
+	if (m_btn_in != m_btn) {
+		if (m_btn_in) {
+			mouse_event(MOUSEEVENTF_MIDDLEDOWN, 0, 0, 0, 0);
+		}
+		else {
+			mouse_event(MOUSEEVENTF_MIDDLEUP, 0, 0, 0, 0);
+		}
+		m_btn = m_btn_in;
 	}
 
 	// middle mouse btn
