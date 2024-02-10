@@ -52,21 +52,30 @@ bool IsSocketConnected(SOCKET socket) {
 
 int connect_socket(SOCKET& sock) {
 
-	const wchar_t* ip = L"192.168.0.161";
-/*
-		L"192.168.0.161",
-		L"192.168.0.21",
-		L"192.168.0.188",
-		L"192.168.0.218"
-*/
+	// read ip from file
+	std::string ip;
+	{
+		std::ifstream ipFile("ip.txt");
+		std::getline(ipFile, ip);
+		ipFile.close();
+	}
+	
+	// write to file if it doesnt exist
+	if (ip.length() == 0)
+	{
+		ip = "172.0.0.1";
+		std::ofstream ipFile("ip.txt");
+		ipFile << ip;
+		ipFile.close();
+	}
 
 	// connect socket
 	static sockaddr_in clientService;
 	clientService.sin_family = AF_INET;
 
 	// loop over IPs until valid connection is made
-	InetPton(AF_INET, ip, &clientService.sin_addr.s_addr);
-	clientService.sin_port = htons(port);
+	inet_pton(AF_INET, ip.c_str(), &clientService.sin_addr.s_addr);
+	clientService.sin_port = htons(get_port());
 	if (connect(sock, (SOCKADDR*)&clientService, sizeof(clientService)) != SOCKET_ERROR) {
 		return 0;
 	}

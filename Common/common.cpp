@@ -1,10 +1,10 @@
 
 #include <iostream>
 #include <winsock2.h>
+#include <string>
+#include <fstream>
 
 #include "common.h"
-
-int port = 30018;
 
 event_buff events;
 
@@ -67,4 +67,30 @@ void event_buff_add_key(UINT _key_event, WPARAM key) {
 	// because we are not people who make
 	// proper queues to handle this properly
 	// for no reason when user is at fault
+}
+
+int get_port() {
+
+	// read ip from file
+	std::string port_str;
+	int port = 0;
+	{
+		std::ifstream portFile("port.txt");
+		std::getline(portFile, port_str);
+		portFile.close();
+	}
+
+	// write to file if it doesnt exist
+	if (port_str.length() == 0)
+	{
+		port_str = "30123";
+		std::ofstream portFile("port.txt");
+		portFile << port_str;
+		portFile.close();
+	}
+
+	// cast to int
+	port = std::stoi(port_str, nullptr);
+
+	return port;
 }

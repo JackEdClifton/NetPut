@@ -16,6 +16,7 @@ int main() {
 
 	// bind socket
 	sockaddr_in service;
+	int port = get_port();
 	service.sin_family = AF_INET;
 	InetPton(AF_INET, L"0.0.0.0", &service.sin_addr.s_addr);
 	service.sin_port = htons(port);
@@ -33,16 +34,16 @@ int main() {
 	}
 
 listen:
-	std::cout << "Info: Listening for connection\n";
+	std::cout << "Info: Listening for connection on port " << port << "\n";
 
 	// accept connection
-	SOCKET acceptSocket = accept(sock, NULL, NULL);
-	if (acceptSocket == INVALID_SOCKET) {
+	SOCKET sock = accept(sock, NULL, NULL);
+	if (sock == INVALID_SOCKET) {
 		std::cout << "Error: " << WSAGetLastError() << std::endl;
 		WSACleanup();
 		return -1;
 	}
-
+	
 	std::cout << "Accepted connection\n";
 
 	// chat to client
@@ -52,7 +53,7 @@ listen:
 	unsigned short m_btn = 0;
 
 input:
-	int byteCount = recv(acceptSocket, events._buffer, EVENT_BUFF_SIZE, 0);
+	int byteCount = recv(sock, events._buffer, EVENT_BUFF_SIZE, 0);
 
 	if (byteCount <= 0) {
 		std::cout << "Connection Lost\n";

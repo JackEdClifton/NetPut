@@ -1,6 +1,5 @@
 #pragma once
 
-extern int port;
 
 #define WINSOCK_DLL_ERROR	1
 #define SOCK_SETUP_ERROR	2
@@ -41,3 +40,4 @@ extern event_buff events;
 
 void event_buff_reset();
 void event_buff_add_key(UINT key_event, WPARAM key);
+int get_port();
