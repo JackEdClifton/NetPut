@@ -4,7 +4,7 @@
 
 #include "common.h"
 
-int port = 25267;
+int port = 30018;
 
 event_buff events;
 
@@ -37,12 +37,20 @@ static int event_keys_addr = 0;
 void event_buff_reset() {
 	event_keys_addr = 0;
 	events.type.MOUSE_WHEEL = 0;
-	long long free_size = 32;
-	memset(&events.type.KEYS, 0, free_size);
+
+	for (int i = KEY_EVENT_ARR_SIZE - 1; i >= 0; i--) {
+		events.type.KEYS[event_keys_addr].key = 0;
+		events.type.KEYS[event_keys_addr]._event = 0;
+	}
 }
 
 
 void event_buff_add_key(UINT _key_event, WPARAM key) {
+
+	// ignore F7
+	if (key == 118) {
+		return;
+	}
 
 	if (event_keys_addr < KEY_EVENT_ARR_SIZE) {
 		events.type.KEYS[event_keys_addr] = key_event(_key_event, key);

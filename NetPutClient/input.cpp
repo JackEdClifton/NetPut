@@ -3,6 +3,8 @@
 #include <WS2tcpip.h>
 #include <chrono>
 #include <thread>
+#include <fstream>
+#include <string>
 
 #include "../Common/common.h"
 
@@ -14,6 +16,15 @@ void GetWindowPos(HWND hwnd, int* x, int* y) {
 		*y = rect.top;
 	}
 	int __uwu = 5;
+}
+
+void get_ip_list() {
+	std::string filename = "ip.txt";
+	std::ifstream inputFile(filename);
+
+	if (!inputFile.is_open()) {
+		// create file with dummy IP
+	}
 }
 
 bool IsSocketConnected(SOCKET socket) {
@@ -41,22 +52,23 @@ bool IsSocketConnected(SOCKET socket) {
 
 int connect_socket(SOCKET& sock) {
 
-	const wchar_t* IPs[] = {
+	const wchar_t* ip = L"192.168.0.161";
+/*
+		L"192.168.0.161",
+		L"192.168.0.21",
 		L"192.168.0.188",
-		L"192.168.0.21"
-	};
+		L"192.168.0.218"
+*/
 
 	// connect socket
 	static sockaddr_in clientService;
 	clientService.sin_family = AF_INET;
 
 	// loop over IPs until valid connection is made
-	for (int i = 0; i < 2; i++) {
-		InetPton(AF_INET, IPs[i], &clientService.sin_addr.s_addr);
-		clientService.sin_port = htons(port);
-		if (connect(sock, (SOCKADDR*)&clientService, sizeof(clientService)) != SOCKET_ERROR) {
-			return 0;
-		}
+	InetPton(AF_INET, ip, &clientService.sin_addr.s_addr);
+	clientService.sin_port = htons(port);
+	if (connect(sock, (SOCKADDR*)&clientService, sizeof(clientService)) != SOCKET_ERROR) {
+		return 0;
 	}
 
 	// none of the listed IPs could provide a connection
@@ -66,30 +78,32 @@ int connect_socket(SOCKET& sock) {
 
 
 void handle_input(bool* quit, HWND* hwnd, SOCKET sock) {
-	// chat to serv
-	static char buffer[200];
-	memset(buffer, 0, sizeof(buffer));
-
 	static int x, y;
 	static bool run = false;
 	static int byteCount;
 	static long long last_f7_press = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	static long long this_f7_press;
 
-	// calling GetAsyncKeyState with the
-	// mouse events causes bouncing
-	// if we increment this each iteration,
-	// and only call GetAsync on the overflow
-	// we can keep mouse positions responsive
-	// without the mouse buttons being bad
-	char get_async_delay = -1;
+
+check_connection_loop:
+
+	if (!IsSocketConnected(sock)) {
+		SetDlgItemText(*hwnd, 50, L"Disconnected");
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		goto check_connection_loop;
+	}
+
+	else {
+		SetDlgItemText(*hwnd, 50, L"Connected");
+
+	}
+
 
 input:
 
 
 	if (!IsSocketConnected(sock)) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
-		goto input;
+		goto check_connection_loop;
 	}
 
 	if (*quit) {
@@ -105,20 +119,13 @@ input:
 		events.type.POINT.x -= x;
 		events.type.POINT.y -= y;
 
-		// get mouse button data
-		get_async_delay++;
-		if (get_async_delay == 60) {
-			get_async_delay = 0;
-		}
-
 		events.type.L_MOUSE_BTN = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
 		events.type.R_MOUSE_BTN = GetAsyncKeyState(VK_RBUTTON) & 0x8000;
 		events.type.M_MOUSE_BTN = GetAsyncKeyState(VK_MBUTTON) & 0x8000;
 	}
 	else {
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
-
 
 	// send inputs to server
 	byteCount = send(sock, events._buffer, EVENT_BUFF_SIZE, 0);
@@ -131,20 +138,39 @@ input:
 	if (GetAsyncKeyState(VK_F7)) {
 		this_f7_press = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 
-#define _2seconds 2000000000
-		if (last_f7_press + _2seconds < this_f7_press) {
+#define delay_ms 1000000 * 200
+		if (last_f7_press + delay_ms < this_f7_press) {
 			run = !run;
 			last_f7_press = this_f7_press;
+
+			// change UI name
+			const wchar_t* help_texts[] = {
+				L"Disabled",
+				L"Enabled"
+			};
+
+			SetDlgItemText(*hwnd, 50, help_texts[run]);
 		}
 	}
-
-	// mouse click events
-	if (0) {
-
-	}
-
 
 	std::this_thread::sleep_for(std::chrono::milliseconds(5));
 
 	goto input;
 }
+
+
+/*
+ * TODO:
+ *
+ * Stop the mouse click bounce (again)
+ *
+ * Get IP address(es) from file
+ * Create file with dummy IP if does not exist
+ *
+ * Make UI better, colour code
+ * grey		- disconnected
+ * green	- connected
+ * yellow	- active
+ *
+ * Intercept Alt and Win buttons
+ */

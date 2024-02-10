@@ -15,11 +15,6 @@ SOCKET sock;
 
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpCmdLine, int nCmdShow) {
 
-	// Redirect cout to a file
-	std::ofstream outFile("console_output.txt");
-	std::streambuf* coutBuf = std::cout.rdbuf();
-	std::cout.rdbuf(outFile.rdbuf());
-
 	HWND hwnd;
 	register_window(&hwnd, hInstance, hPrevInstance, lpCmdLine, nCmdShow);
 

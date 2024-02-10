@@ -18,18 +18,19 @@ struct key_event {
 };
 
 
-#define EVENT_BUFF_SIZE 512
+#define EVENT_BUFF_SIZE 96
 #define KEY_EVENT_ARR_SIZE 5
 union event_buff {
 	char _buffer[EVENT_BUFF_SIZE];
 
+	// size 96
 	struct data {
 		POINT POINT;		//  0 + 8	= 8
 		short L_MOUSE_BTN;	//  8 + 2	= 10
 		short R_MOUSE_BTN;	// 10 + 2	= 12
 		short M_MOUSE_BTN;	// 12 + 2	= 14
 		short MOUSE_WHEEL;	// 14 + 2	= 16
-		key_event KEYS[KEY_EVENT_ARR_SIZE];	// 64 - 16	= 48 bytes free
+		key_event KEYS[KEY_EVENT_ARR_SIZE];	// 12 * 5	= 60
 	} type;
 	
 	event_buff() {}

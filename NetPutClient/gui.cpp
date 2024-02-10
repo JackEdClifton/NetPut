@@ -88,6 +88,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			hwnd, nullptr,
 			GetModuleHandle(nullptr), nullptr);
 
+		CreateWindow(L"STATIC", L"Running",
+			WS_CHILD | WS_VISIBLE,
+			180, 2, 100, 20,
+			hwnd, (HMENU)50,
+			GetModuleHandle(nullptr), nullptr);
+
 		break;
 	}
 
