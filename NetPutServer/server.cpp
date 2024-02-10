@@ -9,8 +9,8 @@
 int main() {
 
 	// setup winsock
-	SOCKET sock;
-	if (setup_winsock(&sock)) {
+	SOCKET listen_sock;
+	if (setup_winsock(&listen_sock)) {
 		return 1;
 	}
 
@@ -20,15 +20,15 @@ int main() {
 	service.sin_family = AF_INET;
 	InetPton(AF_INET, L"0.0.0.0", &service.sin_addr.s_addr);
 	service.sin_port = htons(port);
-	if (bind(sock, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
+	if (bind(listen_sock, (SOCKADDR*)&service, sizeof(service)) == SOCKET_ERROR) {
 		std::cout << "bind failed" << WSAGetLastError() << std::endl;
-		closesocket(sock);
+		closesocket(listen_sock);
 		WSACleanup();
 		return 0;
 	}
 
 	// setup listen
-	if (listen(sock, 1) == SOCKET_ERROR) {
+	if (listen(listen_sock, 1) == SOCKET_ERROR) {
 		std::cout << "Error: " << WSAGetLastError() << std::endl;
 		return 1;
 	}
@@ -37,7 +37,7 @@ listen:
 	std::cout << "Info: Listening for connection on port " << port << "\n";
 
 	// accept connection
-	SOCKET sock = accept(sock, NULL, NULL);
+	SOCKET sock = accept(listen_sock, NULL, NULL);
 	if (sock == INVALID_SOCKET) {
 		std::cout << "Error: " << WSAGetLastError() << std::endl;
 		WSACleanup();
