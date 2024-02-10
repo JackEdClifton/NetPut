@@ -40,17 +40,28 @@ bool IsSocketConnected(SOCKET socket) {
 }
 
 int connect_socket(SOCKET& sock) {
+
+	const wchar_t* IPs[] = {
+		L"192.168.0.188",
+		L"192.168.0.21"
+	};
+
 	// connect socket
 	static sockaddr_in clientService;
 	clientService.sin_family = AF_INET;
-	InetPton(AF_INET, L"192.168.0.188", &clientService.sin_addr.s_addr);
-	clientService.sin_port = htons(port);
-	if (connect(sock, (SOCKADDR*)&clientService, sizeof(clientService)) == SOCKET_ERROR) {
-		std::cout << "Client: connect() failed: " << WSAGetLastError() << std::endl;
-		closesocket(sock);
-		return 1;
+
+	// loop over IPs until valid connection is made
+	for (int i = 0; i < 2; i++) {
+		InetPton(AF_INET, IPs[i], &clientService.sin_addr.s_addr);
+		clientService.sin_port = htons(port);
+		if (connect(sock, (SOCKADDR*)&clientService, sizeof(clientService)) != SOCKET_ERROR) {
+			return 0;
+		}
 	}
-	return 0;
+
+	// none of the listed IPs could provide a connection
+	closesocket(sock);
+	return 1;
 }
 
 
@@ -99,7 +110,7 @@ input:
 		if (get_async_delay == 60) {
 			get_async_delay = 0;
 		}
-		
+
 		events.type.L_MOUSE_BTN = GetAsyncKeyState(VK_LBUTTON) & 0x8000;
 		events.type.R_MOUSE_BTN = GetAsyncKeyState(VK_RBUTTON) & 0x8000;
 		events.type.M_MOUSE_BTN = GetAsyncKeyState(VK_MBUTTON) & 0x8000;
@@ -111,7 +122,7 @@ input:
 
 	// send inputs to server
 	byteCount = send(sock, events._buffer, EVENT_BUFF_SIZE, 0);
-	events.type.MOUSE_WHEEL = 0; // reset this value
+	event_buff_reset();
 
 	if (byteCount <= 0) {
 		return; // exit program

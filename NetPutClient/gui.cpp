@@ -109,6 +109,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		break;
 	}
 
+	case WM_KEYDOWN: 
+	case WM_KEYUP:
+	{
+		event_buff_add_key(uMsg, wParam);
+		break;
+	}
+
 	case WM_MOUSEWHEEL: {
 		events.type.MOUSE_WHEEL = GET_WHEEL_DELTA_WPARAM(wParam);
 		break;

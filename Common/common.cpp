@@ -30,3 +30,33 @@ int setup_winsock(SOCKET* sock) {
 
 	return 0;
 }
+
+
+static int event_keys_addr = 0;
+
+void event_buff_reset() {
+	event_keys_addr = 0;
+	events.type.MOUSE_WHEEL = 0;
+	long long free_size = 32;
+	memset(&events.type.KEYS, 0, free_size);
+}
+
+
+void event_buff_add_key(UINT _key_event, WPARAM key) {
+
+	if (event_keys_addr < KEY_EVENT_ARR_SIZE) {
+		events.type.KEYS[event_keys_addr] = key_event(_key_event, key);
+		event_keys_addr++;
+	}
+
+	// else do nothing
+	// it will be rare to use up
+	// all 5 slots with the frequency
+	// inputs are transfred
+	// if we ever do get to this pretend
+	// the input did not exist
+	//
+	// because we are not people who make
+	// proper queues to handle this properly
+	// for no reason when user is at fault
+}

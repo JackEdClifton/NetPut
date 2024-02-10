@@ -116,24 +116,23 @@ input:
 		mouse_event(MOUSEEVENTF_WHEEL, 0, 0, events.type.MOUSE_WHEEL, 0);
 	}
 
+	// handle keyboard events
+	for (int addr = 0; events.type.KEYS[addr]._event; addr++) {
+
+		INPUT input_event = {};
+		memset(&input_event, 0, sizeof(INPUT));
+		input_event.type = INPUT_KEYBOARD;
+		input_event.ki.wVk = events.type.KEYS[addr].key;
+		
+		if (events.type.KEYS[addr]._event == WM_KEYUP) {
+			input_event.ki.dwFlags = KEYEVENTF_KEYUP;
+		}
+
+		SendInput(1, &input_event, sizeof(INPUT));
+	}
+
 	goto input;
 
 	WSACleanup();
 	return 0;
 }
-
-
-/*
-
-TODO:
-
-create window
-
-intercept mouse clicks
-or put the mouse on a window and forward clicks (prefered)
-
-then do the same with keyboard events
-
-will it work on UAC?
-
-*/
